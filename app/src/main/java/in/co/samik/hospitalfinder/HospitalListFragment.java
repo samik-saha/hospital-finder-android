@@ -1,5 +1,6 @@
 package in.co.samik.hospitalfinder;
 
+import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.v4.app.Fragment;
@@ -8,6 +9,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
@@ -30,6 +32,14 @@ import java.util.List;
  */
 public class HospitalListFragment extends Fragment {
     public ArrayAdapter<String> mHospitalAdapter;
+    public JSONArray hospitalJSONArray;
+    private static final String LOG_TAG = HospitalListFragment.class.getSimpleName();
+
+    public void setHospitalArray(JSONArray hospitalArray) {
+        this.hospitalJSONArray = hospitalArray;
+    }
+
+
 
     public HospitalListFragment() {
     }
@@ -56,7 +66,20 @@ public class HospitalListFragment extends Fragment {
 
         ListView listView = (ListView) rootView.findViewById(R.id.listview_forecast);
         listView.setAdapter(mHospitalAdapter);
-
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                try{
+                    JSONObject hospitalObject = hospitalJSONArray.getJSONObject(position);
+                    Intent detailIntent = new Intent(getActivity(), DetailActivity.class)
+                            .putExtra(Intent.EXTRA_TEXT,hospitalObject.toString());
+                    startActivity(detailIntent);
+                }
+                catch (JSONException e){
+                    Log.d(LOG_TAG,e.getMessage(),e);
+                }
+            }
+        });
 
         return rootView;
     }
@@ -65,6 +88,7 @@ public class HospitalListFragment extends Fragment {
         private final String LOG_TAG = FetchHospitalTask.class.getSimpleName();
         private final String RESOURCE_ID = "7d208ae4-5d65-47ec-8cb8-2a7a7ac89f8c";
         private final String API_KEY="0b2e47ab36b36a89ffc458deaef7442f";
+        JSONArray hospitalArray;
 
         @Override
         protected String[] doInBackground(String... params) {
@@ -75,6 +99,7 @@ public class HospitalListFragment extends Fragment {
 
             // Will contain the raw JSON response as a string.
             String hospitalJsonStr = null;
+
 
             int numDays = 7;
             try {
@@ -155,7 +180,7 @@ public class HospitalListFragment extends Fragment {
             final String JSON_HOSPITAL_NAME = "hospitalname";
 
             JSONObject hospitalJSON = new JSONObject(hospitalJsonStr);
-            JSONArray hospitalArray = hospitalJSON.getJSONArray(JSON_RECORDS);
+            hospitalArray = hospitalJSON.getJSONArray(JSON_RECORDS);
 
             String[] resultStrs = new String[hospitalArray.length()];
             for(int i = 0; i < hospitalArray.length(); i++) {
@@ -170,6 +195,7 @@ public class HospitalListFragment extends Fragment {
 
         @Override
         protected void onPostExecute(String[] resultStrs) {
+            hospitalJSONArray=hospitalArray;
             mHospitalAdapter.clear();
             mHospitalAdapter.addAll(Arrays.asList(resultStrs));
         }
