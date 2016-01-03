@@ -157,10 +157,12 @@ public class HospitalListFragment extends Fragment {
                     }
                 }
             }
-            Log.v(LOG_TAG,hospitalJsonStr);
 
             try {
-                return getHospitalDataFromJson(hospitalJsonStr);
+                if (hospitalJsonStr != null)
+                    return getHospitalDataFromJson(hospitalJsonStr);
+                else
+                    return null;
             }catch(JSONException e) {
                 Log.e(LOG_TAG,e.getMessage(),e);
                 return null;
@@ -195,9 +197,11 @@ public class HospitalListFragment extends Fragment {
 
         @Override
         protected void onPostExecute(String[] resultStrs) {
-            hospitalJSONArray=hospitalArray;
-            mHospitalAdapter.clear();
-            mHospitalAdapter.addAll(Arrays.asList(resultStrs));
+            if(resultStrs!=null) {
+                hospitalJSONArray = hospitalArray;
+                mHospitalAdapter.clear();
+                mHospitalAdapter.addAll(Arrays.asList(resultStrs));
+            }
         }
     }
 }
